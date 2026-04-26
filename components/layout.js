@@ -4,7 +4,7 @@ import styles from './layout.module.css';
 import utilStyles from '../styles/utils.module.css';
 import Link from 'next/link';
  
-const name = 'Popov Kyrylo Serhiiovych';
+const name = 'Kyrylo Popov Serhiiovych';
 export const siteTitle = 'Next.js Sample Website';
  
 export default function Layout({ children, home }) {
