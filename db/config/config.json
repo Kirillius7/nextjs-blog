@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "ticketsresale",
+    "password": "ticketsresale",
+    "database": "ticketsresale",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "ticketsresale",
+    "password": "ticketsresale",
+    "database": "ticketsresale",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "ticketsresale",
+    "password": "ticketsresale",
+    "database": "ticketsresale",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
