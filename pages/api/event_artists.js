@@ -1,4 +1,4 @@
-import sequelize from "../../lib/sequelize";
+/*import sequelize from "../../lib/sequelize";
 import { Event_ArtistModel } from "../../Server/Models/Event_Artist";
 
 export default async function handler(req, res) {
@@ -9,4 +9,4 @@ export default async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+}*/
