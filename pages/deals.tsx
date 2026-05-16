@@ -1,4 +1,4 @@
-import Layout from "../components/layout";
+/*import Layout from "../components/layout";
 import sequelize from "../lib/sequelize";
 import { OrderModel } from "../Server/Models/Order";
 
@@ -25,4 +25,4 @@ export default function DealsPage({ orders }) {
       ))}
     </Layout>
   );
-}
+}*/
