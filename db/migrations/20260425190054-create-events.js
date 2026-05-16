@@ -7,6 +7,7 @@ module.exports = {
       id int NOT NULL AUTO_INCREMENT,
       user_id int DEFAULT NULL,
       series_id int DEFAULT NULL,
+      event_name varchar(45) NOT NULL,
       location_name varchar(255) NOT NULL,
       location_address varchar(255) NOT NULL,
       location_capacity int NOT NULL,

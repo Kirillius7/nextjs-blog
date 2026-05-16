@@ -6,7 +6,7 @@ module.exports = { // експорт обʼєкта для Sequelize, він в 
   async up(queryInterface, Sequelize) {
     const users = [];
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 1000; i++) {
       users.push({
         username: faker.internet.username(),
         email: faker.internet.email(),

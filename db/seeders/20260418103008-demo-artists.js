@@ -6,7 +6,7 @@ const { faker } = require('@faker-js/faker');
 module.exports = {
   async up(queryInterface, Sequelize) {
     const artists = []
-    for(let i = 0; i < 10; i++){
+    for(let i = 0; i < 100; i++){
       artists.push({
         stage_name: faker.music.artist(),
         first_name: faker.person.firstName(),

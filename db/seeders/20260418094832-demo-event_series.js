@@ -10,7 +10,7 @@ module.exports = {
     const venueTypes = ['indoor', 'outdoor', 'mixed'];
     const scales = ['local', 'regional', 'international', 'global'];
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 200; i++) {
       eventSeries.push({
         name: faker.company.name(),
         description: faker.lorem.paragraph(),

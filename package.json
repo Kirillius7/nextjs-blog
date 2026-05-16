@@ -7,10 +7,13 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.4.0",
+    "awilix": "^13.0.3",
     "date-fns": "^4.1.0",
+    "formik": "^2.4.9",
     "gray-matter": "^4.0.3",
     "mysql2": "^3.22.1",
     "next": "latest",
+    "next-connect": "^1.0.0",
     "react": "latest",
     "react-dom": "latest",
     "remark": "^15.0.1",

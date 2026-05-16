@@ -60,6 +60,12 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*": [
+        "lib/*"
+      ]
+    },
     "strictNullChecks": true
   },
   "include": [
@@ -67,7 +73,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "Server/Models/User.ts",
+    "lib/sequelize.js"
   ],
   "exclude": [
     "node_modules",
