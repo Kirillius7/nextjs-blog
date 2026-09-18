@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 //import { Event_SerieType } from "../Interfaces/event_serie.interface";
 import { BuildOptions, Model } from "sequelize";
-import sequelize from "../../lib/sequelize";
+//import sequelize from "../../lib/sequelize";
 
 export interface IEvent_Serie extends Model{
     readonly id: number;
@@ -84,7 +84,11 @@ export const Event_SerieModel = (ctx: any) => {
   return Event_Serie;
 }*/
 
-export const EventSeries = <Event_SerieType>sequelize.define("event_series", {
+import IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+//export const EventSeries = <Event_SerieType>sequelize.define("event_series", {
+const EventSeries = <Event_SerieType>ctx.db.define("event_series", {
         id:{
             allowNull: false,
             autoIncrement: true,
@@ -146,4 +150,6 @@ export const EventSeries = <Event_SerieType>sequelize.define("event_series", {
         },
     },{
     timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
-});
+})
+    return EventSeries;
+}

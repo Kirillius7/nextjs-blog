@@ -1,11 +1,12 @@
-import { createRouter } from 'next-connect';
+//->import { createRouter } from 'next-connect';
 //import sequelize from "../../lib/sequelize";
 //import { initAssociations } from '../../Server/Models/associations';
 //import { models } from "../../Server/Models/index";
 
 //import eventController from "../../Server/Controllers/EventController";
 
-import container from '../../lib/container';
+/*->
+import container from 'Server/DI/container';
 const router = createRouter({
   // Глобальний обробник помилок
   onError: (err, req, res) => {
@@ -24,6 +25,7 @@ const router = createRouter({
     });
   },
 });
+*/
 
 /*router.use(async (req, res, next) => {
     const {Event, EventSeries} = initAssociations(sequelize)
@@ -73,6 +75,13 @@ const router = createRouter({
 
 //router.get(eventController.getEventList);
 
+/*->
 router.get(container.cradle.eventController.getEventList)
 
 export default router.handler();
+*/
+
+import container from 'Server/DI/container';
+export default container
+  .resolve("eventController")
+  .handler("/api/events");

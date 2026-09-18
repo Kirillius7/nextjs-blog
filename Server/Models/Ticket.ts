@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 //import { TicketType } from "../Interfaces/ticket.interface";
-import sequelize from "@lib/sequelize";
+//import sequelize from "@lib/sequelize";
 import { BuildOptions, DecimalDataType, Model } from "sequelize";
 
 export interface ITicket extends Model{
@@ -80,7 +80,12 @@ export const TicketModel = (ctx: any) =>{
   return Ticket;
 }*/
 
-export const Ticket = <TicketType>sequelize.define("tickets", {
+import IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+
+//export const Ticket = <TicketType>sequelize.define("tickets", {
+const Ticket = <TicketType>ctx.db.define("tickets", {
         id:{
             allowNull: false,
             autoIncrement: true,
@@ -137,3 +142,5 @@ export const Ticket = <TicketType>sequelize.define("tickets", {
     }, {
     timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
 });
+    return Ticket;
+}

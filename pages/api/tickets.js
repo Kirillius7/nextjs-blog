@@ -1,7 +1,8 @@
 // import User from "../../models/User.js";
-import { createRouter } from 'next-connect';
+//->import { createRouter } from 'next-connect';
 //import ticketController from "../../Server/Controllers/TicketController";
-import container from '../../lib/container';
+import container from 'Server/DI/container';
+/*->
 const router = createRouter({
   // Глобальний обробник помилок
   onError: (err, req, res) => {
@@ -20,7 +21,7 @@ const router = createRouter({
     });
   },
 });
-
+*/
 // middleware для ініціалізації таблиці БД
 /*router.use(async (req, res, next) => {
   req.models = {
@@ -55,5 +56,13 @@ const router = createRouter({
 */
 
 //router.get(ticketController.getTicketList);
+
+/*
 router.get(container.cradle.ticketController.getTicketList);
 export default router.handler();
+*/
+
+export default container
+      .resolve("ticketController")
+      //.handler("/api/tickets");
+      .handler();

@@ -1,13 +1,23 @@
 import Layout from "../../components/layout";
 //import sequelize from "../lib/sequelize";
-import { IUser } from "Server/Models/User";
 import { Field, Form, Formik } from "formik";
 import Link from "next/link";
 import { useState } from "react";
-import { models } from "../../Server/Models/index";
+
+import { IUser } from "@/Server/Models/User";
+import Store from "@/Server/Store/Store";
 import { api } from "../../lib/api";
+
+/*
 export async function getServerSideProps() {
-  const {User, Order, Ticket, Event} = models;
+  
+  // Тепер імпортуємо контейнер (теж динамічно або звичайним імпортом зверху, 
+  // але динамічно всередині функції надійніше, щоб уникнути каші в бандлі)
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default;
+  const cradle: IContextContainer = container.cradle;
+  
+  const {User, Order, Ticket, Event} = cradle;
 
   const users = await User.findAll({
     where: {role: "client"},
@@ -36,15 +46,24 @@ export async function getServerSideProps() {
     }
   };
 }
+*/
 
-export default function UsersPage({ users }) {
-  const[usrs, setUsers] = useState(users);
+export const getServerSideProps = Store.getServerSideProps(
+  "userController"
+)
+type UserResponse = {
+  users: IUser[];
+}
+export default function UsersPage({ data }) {
+  const[user] = useState(data.identity);
+  const[usrs, setUsers] = useState(data.getUserList.users);
   
   const fetchAllData = async() => {
     const url = "users";
 
-    const data = await api.xRead<IUser[]>(url);
-    setUsers(data);
+    //const data = await api.xRead<IUser[]>(url);
+    const data = await api.xRead<{getUserList: UserResponse}>(url);
+    setUsers(data.getUserList.users);
   }
 
   const fetchFilteredData = async(eventName: string, categoryTicket: string) => {
@@ -76,9 +95,9 @@ export default function UsersPage({ users }) {
 
       console.log(url);
 
-      const data = await api.xRead(url);
+      const data = await api.xRead<{getUserList: UserResponse}>(url);
 
-      setUsers(data);
+      setUsers(data.getUserList.users);
   }
 
   const ticketOptions = [
@@ -88,7 +107,7 @@ export default function UsersPage({ users }) {
   ];
 
   return (
-    <Layout>
+    <Layout props = {user}>
       <h1>Our clients</h1>
       <div>
       <Formik

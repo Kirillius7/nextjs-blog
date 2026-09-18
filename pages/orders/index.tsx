@@ -3,12 +3,21 @@ import { Field, Form, Formik } from "formik";
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "../../lib/api";
-import { models } from "../../Server/Models/index";
-import { IOrder } from "../../Server/Models/Order";
+//import { models } from "../../Server/Models/index";
+//import { sequelizeModels } from "../../Server/Models/createModels";
+//import IContextContainer from 'Server/DI/Interfaces/IContextContainer';
 
+import { IOrder } from "@/Server/Models/Order";
+import Store from "@/Server/Store/Store";
+
+/*
 export async function getServerSideProps() {
     //const {id} = context.query;
-    const {Order, User, Event, Ticket} = models;
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default;
+  const cradle: IContextContainer = container.cradle;
+
+    const {Order, User, Event, Ticket} = cradle;
 
     const orders = await Order.findAll({
         //where: id,
@@ -30,15 +39,23 @@ export async function getServerSideProps() {
         }
     }
 }
+*/
+
+export const getServerSideProps = Store.getServerSideProps(
+    "orderController"
+)
 
 const ticketOptions = [
 "vip",
 "special",
 "ordinary"
 ];
-
-export default function OrdersPage({orders}){
-    const[ordrs, setOrders] = useState(orders);
+type OrderResponse = {
+    orders: IOrder[]
+}
+export default function OrdersPage({data}){
+    const[user] = useState(data.identity);
+    const[ordrs, setOrders] = useState(data.getOrdersList.orders);
     //const router = useRouter();
     /*
     const orderid =
@@ -49,11 +66,11 @@ export default function OrdersPage({orders}){
      const fetchAllData = async() =>{
         const url = "orders";
         //orderid ? `orders/${orderid}` : "orders";
-        console.log(url)
-        const data = await api.xRead<IOrder[]>(url);
+        //console.log(url)
+        const data = await api.xRead<{getOrdersList: OrderResponse}>(url);
         
-        setOrders(data);
-        console.log(ordrs);
+        setOrders(data.getOrdersList.orders);
+        //console.log(ordrs);
     }
     
     const fetchFilteredData = async(eventName: string, categoryTicket: string, orderid?: string) =>{
@@ -72,13 +89,13 @@ export default function OrdersPage({orders}){
         
         const url = query ? `orders?${query}` : "orders";
         console.log(url)
-        const data = await api.xRead<IOrder[]>(url);
+        const data = await api.xRead<{getOrdersList: OrderResponse}>(url);
 
-        setOrders(data);
+        setOrders(data.getOrdersList.orders);
     }
     
     return(
-        <Layout>
+        <Layout props = {user}>
             <Formik
                 initialValues={{ nameEvent: "", categoryTicket: "" }}
                 validate={(values) => {
@@ -154,6 +171,7 @@ export default function OrdersPage({orders}){
                         </div>
                         {/*<p>publishedAt: {new Date(order.publishedAt * 1000).toLocaleDateString()}</p>*/}
                         {order.tickets.map((tckt) => (
+                            <div key = {tckt.id}>
                             <div style = {{backgroundColor: "white",
                 border: "1px solid #e5e5e5",
                 borderRadius: "10px",
@@ -166,7 +184,7 @@ export default function OrdersPage({orders}){
                             <p>NameEvent: {tckt.eventTicket.eventName}</p>
                             
                             </div>
-                        ))}
+                        </div>))}
 
                         <Link href = {`/users/${order.userid}`}>
                             <button>Go to user</button>

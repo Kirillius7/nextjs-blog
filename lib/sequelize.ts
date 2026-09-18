@@ -1,5 +1,7 @@
 // створення файлу-точки підключення до БД завдяки налаштуванню обʼєкта Sequelize
 import { Sequelize } from "sequelize";
+console.log("true tse pochatok?")
+
 // import {config} from "config"
 
 /*

@@ -1,9 +1,15 @@
+import Store from "@/Server/Store/Store";
 import Image from "next/image";
+import { useState } from "react";
 import Layout from "../components/layout";
 
-export default function Home() {
+export const getServerSideProps = Store.getServerSideProps("homeController");
+
+export default function Home({data}) {
+//export default function Home() {
+  const[user] = useState(data.identity)
   return (
-    <Layout>
+    <Layout props = {user}>
   <div style={{ 
     backgroundColor: "#ead269ff",
     minHeight: "100vh", 

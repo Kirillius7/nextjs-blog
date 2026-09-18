@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import sequelize from "../../lib/sequelize"; // підключення головного sequelize instance, об'єкт підключення до БД
+//import sequelize from "../../lib/sequelize"; // підключення головного sequelize instance, об'єкт підключення до БД
 //import { ArtistType } from "../Interfaces/artist.interface";
 import { BuildOptions, Model } from "sequelize";
 
@@ -76,7 +76,11 @@ export const ArtistModel = (ctx: any) => {
   return Artist;
 }*/
 
-export const Artist = <ArtistType>sequelize.define("artists", { // створення Sequelize-моделі типу ArtistType (з полями, методами)
+import type IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+//export const Artist = <ArtistType>sequelize.define("artists", { // створення Sequelize-моделі типу ArtistType (з полями, методами)
+const Artist = <ArtistType>ctx.db.define("artists", { // створення Sequelize-моделі типу ArtistType (з полями, методами)
         id:{
             allowNull: false,
             autoIncrement: true,
@@ -129,4 +133,6 @@ export const Artist = <ArtistType>sequelize.define("artists", { // створе�
         },
     },{
     timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
-  });
+  })
+  return Artist;
+}

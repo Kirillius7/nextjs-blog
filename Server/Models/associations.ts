@@ -6,12 +6,41 @@ import { Event_SerieModel } from "./Event_Series";*/
 //import sequelize from "../../lib/sequelize";
 
 //export function initAssociations(sequelize) {
-export function initAssociations(models) {
+
+/*export function initAssociations(models) {*/
+
   /*const Event = EventModel({ db: sequelize });
   const EventSeries = Event_SerieModel({ db: sequelize });
   const Artist = ArtistModel({ db: sequelize });
   const EventArtist = Event_ArtistModel({ db: sequelize });*/
-  const { Ticket, Event, EventSeries, Artist, EventArtist, User, Order } = models;
+import type { IModelContainer } from "./index";
+
+//import { sequelizeModels } from "./createModels";
+  //const { Ticket, Event, EventSeries, Artist, EventArtist, User, Order } = sequelizeModels;
+export default function initAssociations(
+  models: IModelContainer
+) {
+
+  
+const {
+    Ticket,
+    Event,
+    EventSeries,
+    Artist,
+    EventArtist,
+    User,
+    Order
+  } = models;
+
+  console.log("INIT ASSOCIATIONS CALLED");
+
+  console.log("Event instance:", Event === (Event as any));
+  console.log("Artist instance:", Artist === (Artist as any));
+
+  console.log("Event.associations BEFORE:", Object.keys(Event.associations || {}));
+  if (Event.associations && Event.associations.Performers) {
+    return;
+  }
 
   Event.belongsToMany(Artist, {
     through: EventArtist,
@@ -25,31 +54,23 @@ export function initAssociations(models) {
     foreignKey: "artistid",
   });
 
+  console.log("Event.associations AFTER:", Object.keys(Event.associations || {}));
+
+  
   Event.belongsTo(EventSeries, {
     foreignKey: "seriesid",
     as: "series",
   });
 
-  // 
+  
 
   Event.belongsTo(User, {
     foreignKey: "userid",
     as: "createdEvent"
   })
 
-  //
-  /*Order.belongsTo(User, {
-    foreignKey: "userid",
-    as: "userOrder"
-  })
 
-  User.hasMany(Order, {
-    foreignKey: "userid",
-    as: "orders"
-  })*/
-//  
 
-//
 User.hasMany(Order, {
   foreignKey: "userid",
   sourceKey: "id",
@@ -62,14 +83,14 @@ Order.belongsTo(User, {
   as: "userOrder"
 });
 
-//
+
 
   Ticket.belongsTo(Order, {
     foreignKey: "orderid",
     as: "orderTicket"
   })
 
-  // 
+  
 
   Order.hasMany(Ticket, {
     foreignKey: "orderid",
@@ -86,8 +107,8 @@ Order.belongsTo(User, {
     as: "userTicket"
   })
 
-  
+}
   
 
   //return { Event, EventSeries, Artist, EventArtist };
-}
+/*}*/

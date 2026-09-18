@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 //import { OrderType } from "../Interfaces/order.interface";
-import sequelize from "@lib/sequelize";
+//import sequelize from "@lib/sequelize";
 import { BuildOptions, Model } from "sequelize";
 
 export interface IOrder extends Model{
@@ -55,7 +55,12 @@ export const OrderModel = (ctx: any) => {
 
     return Order;
 }*/
-export const Order = <OrderType>sequelize.define("orders", {
+
+import IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+//export const Order = <OrderType>sequelize.define("orders", {
+const Order = <OrderType>ctx.db.define("orders", {
         id: {
             allowNull: false,
             autoIncrement: true,
@@ -90,4 +95,6 @@ export const Order = <OrderType>sequelize.define("orders", {
         },
     },{
         timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
-});
+})
+    return Order;
+}

@@ -38,6 +38,8 @@
 //}
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "target": "ES2017",
     "lib": [
       "dom",
@@ -62,9 +64,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@lib/*": [
-        "lib/*"
-      ]
+      "@lib/*": ["lib/*"],
+      "@/*": ["./*"]
     },
     "strictNullChecks": true
   },

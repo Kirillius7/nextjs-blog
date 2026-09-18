@@ -1,19 +1,32 @@
 import Link from 'next/link';
-import { useRouter } from "next/router";
 import { useEffect, useState } from 'react';
 import Layout from "../components/layout";
 //import sequelize from "../lib/sequelize";
 //import { EventModel } from "../Server/Models/Event";
 //import { initAssociations } from '../Server/Models/associations';
 import { Field, Form, Formik } from "formik";
-import { api } from "../lib/api";
-import { IEvent } from "../Server/Models/Event";
-import { models } from "../Server/Models/index";
+//import { api } from "../lib/api";
+//import { models } from "../Server/Models/index";
+//import { sequelizeModels } from "../Server/Models/createModels";
+//import IContextContainer from 'Server/DI/Interfaces/IContextContainer';
+import { IEvent } from '@/Server/Models/Event';
+//import { AppState } from '@/Server/Store/ReduxStore';
+import Store from '@/Server/Store/Store';
+import { useDispatch, useSelector } from 'react-redux';
+//import container from "../lib/container";
+/*
 export async function getServerSideProps(context) {
+  await import("Server/Models/createModels");
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default; 
+  const cradle: IContextContainer = container.cradle;
+  
   const {seriesId} = context.query;  
   //const Event = EventModel({ db: sequelize });
   //const {Event, EventSeries} = initAssociations(sequelize)
-  const {Event, EventSeries} = models;
+  
+  //const {Event, EventSeries} = models;
+  const { Event, EventSeries } = cradle;
   
   const include = {
     model: EventSeries,
@@ -27,14 +40,14 @@ export async function getServerSideProps(context) {
       where: { seriesid: seriesId, statusevent: "active"},
       include: [include],
       order: [["id", "ASC"]]});
-    console.log(events);
+    //console.log(events);
   }
   else{
     events = await Event.findAll({ 
       where: {statusevent: "active"},
       include: [include],
       order: [["id", "ASC"]]}); // повернення простого json-обʼєкта
-    console.log(events);
+    //console.log(events);
   }
 
   // спеціальні обʼєкти (instances), вони містять прототипи, методи, внутрішні поля, складні вкладені обʼєкти
@@ -45,23 +58,48 @@ export async function getServerSideProps(context) {
     }
   };
 }
+*/
+type EventResponse = {
+  events: IEvent[],
+  seriesid: number | null
+}
+export const getServerSideProps = Store.getServerSideProps(
+  [
+    {
+      controller: "eventController",
+      redux: "events"
+    }
+  ]
+)
+export default function EventsPage({ data }) {
+  const dispatch = useDispatch();
+  const reduxData1 = useSelector((state: any) => state.entities.events); // стан в ReduxStore є обʼєктом {entities: {tickets: {data: {getTickets: {tickets, id}}, error, loading}}}
+  console.log("redux1data1", reduxData1)
+  const eventsRedux = reduxData1?.data?.getEventList?.events;
+  console.log("eventsRedux", eventsRedux)
 
-export default function EventsPage({ events }) {
-  const router = useRouter();
-
+  //const router = useRouter();
+  /*
   const seriesId =
     typeof router.query.seriesId === "string"
       ? router.query.seriesId
       : undefined;
-
+  */
+  const seriesId = data.getEventList.seriesid;
   const [filters, setFilters] = useState({
     audienceType: "",
     venueType: "",
     scale: "",
   });
+  /*
+  console.log("data", data);
+  console.log("data.getEventList", data.getEventList);
+  console.log("data.getEventList.events", data.getEventList.events);
+  */
+  const[user] = useState(data.identity)
 
-  const [evnts, setEvents] = useState(events);
-
+  //const [evnts, setEvents] = useState(data.getEventList.events);
+  const [evnts, setEvents] = useState([])
   useEffect(() => {
     console.log("PAGE MOUNTED");
   }, []);
@@ -82,24 +120,27 @@ export default function EventsPage({ events }) {
         });
       }
       */
-      console.error("Start fetch");
-      const data = await api.xRead<IEvent[]>("events");
-      console.error("End fetch");
+      
+      //console.error("Start fetch");
+      //const data = await api.xRead<IEvent[]>("events");
+      //console.error("End fetch");
 
-      setEvents(data);
+      //const data = await api.xRead<{getEventList: EventResponse}>("events");
+      //setEvents(data.getEventList.events);
       setFilters({
           audienceType: "",
           venueType: "",
           scale: "",
       });
-      
+      dispatch({type: "events/FETCH_REQUEST", payload: {}})
     } catch (error) {
       console.error(error.message);
     }
   };
 
   const fetchFilteredData = async (currentFilters, seriesId?) => {
-    try {
+    //try {
+    /*
       const cleanFilters = Object.fromEntries( // перетворення обʼєкта у масив
         Object.entries(currentFilters).filter(([_, v]) => v !== "") // видалення зайвих пустих значень й повернення у обʼєкт
       ) as Record<string, string>; // запобігання відправлення пустих фільтрів до API 
@@ -108,7 +149,10 @@ export default function EventsPage({ events }) {
         cleanFilters.seriesId = String(seriesId);
         console.log(cleanFilters.seriesId)
       }
-      const query = new URLSearchParams(cleanFilters).toString(); 
+      const query = new URLSearchParams(cleanFilters).toString();
+      console.log(query) 
+      console.log(seriesId) */
+
       // формування query (рядок параметрів, що йде після ? в url) на основі запиту користувача у пошуковому рядку
       
       /*const url = query ? `/api/events?${query}` : `/api/events`; // формування повної адреси запиту звертання 
@@ -119,14 +163,17 @@ export default function EventsPage({ events }) {
       if (Array.isArray(data)) {
         setEvents(data);
       }*/
-      
+      /*
       const url = query ? `events?${query}` : `events`;
-      const data = await api.xRead<IEvent[]>(url);
-      setEvents(data);
+      //const data = await api.xRead<IEvent[]>(url);
+      const data = await api.xRead<{getEventList: EventResponse}>(url);
+      setEvents(data.getEventList.events);*/
 
-    } catch (error) {
+      dispatch({type: "events/FETCH_REQUEST", payload: {currentFilters, ...(seriesId ? {seriesId} : {})}})
+
+    /*} catch (error) {
       console.error("Filter error:", error);
-    }
+    }*/
   };
 
   function Toggle(e) {
@@ -146,7 +193,9 @@ export default function EventsPage({ events }) {
     fetchFilteredData(filters); // автоматичний виклик методу, що робить fetch даних з відповідними фільтрами
   }, [filters]);
   
-  const uniqueId = new Set(evnts.map(e => e.seriesid))
+  //const uniqueId = new Set(evnts.map(e => e.seriesid))
+  const eventsReduxArray = Array.isArray(eventsRedux) ? eventsRedux : [];
+  const uniqueId = new Set(eventsReduxArray?.map(e => e.seriesid))
   const filterShow = uniqueId.size > 1 ? true : false;
   const audienceOptions = [
     "professional",
@@ -169,7 +218,7 @@ export default function EventsPage({ events }) {
     "global"
   ];
   return (
-    <Layout>
+    <Layout props = {user}>
     
       <h1 style = {{display: "flex", justifyContent: "center"}}>Events</h1>
       <p>{uniqueId.size}</p>
@@ -202,7 +251,7 @@ export default function EventsPage({ events }) {
       </div>)}*/}
 
       
-      <Formik
+      {<Formik
         initialValues={{
           audienceType: "",
           venueType: "",
@@ -298,14 +347,14 @@ export default function EventsPage({ events }) {
 
             
           )}
-            <button type="submit">
+            { filterShow && <button type="submit">
               Apply filters
-            </button>
+            </button>}
         </Form>
         <div>
 
         </div>
-         { filterShow && (   <div>
+        { /*{ filterShow && (   <div>
             <button
           type="button"
           onClick={() => {
@@ -316,12 +365,27 @@ export default function EventsPage({ events }) {
         >
           Reset
         </button>
-        </div>)}
+        </div>)}*/}
+        <div>
+            <button
+          type="button"
+          onClick={() => {
+            resetForm();
+
+            fetchAllData()
+          }}
+        >
+          Reset
+        </button>
+        {!filterShow && (<button onClick = {() => fetchFilteredData(filters, seriesId)}>
+          Fetch
+        </button>)}
+        </div>
         </>
         )}
-      </Formik>
+      </Formik>}
     <div style = {{display: "flex",  alignItems: "center",  flexDirection: "column", justifyContent: "center"}}>
-     {evnts.map((e: any) => ( // початок роботи з основним масивом даних (події)
+     {eventsReduxArray.map((e: any) => ( // початок роботи з основним масивом даних (події)
     <div
       key={e.id}
       style={{

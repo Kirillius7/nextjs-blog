@@ -2,17 +2,48 @@ import { useEffect, useState } from "react";
 import Layout from "../components/layout";
 //import sequelize from "../lib/sequelize";
 //import { initAssociations } from '../Server/Models/associations';
-import { models } from "../Server/Models/index";
+//import { models } from "../Server/Models/index";
 //
+//import container from "../Server/DI/container";
+//import IContextContainer from "../Server/DI/Interfaces/IContextContainer";
+//import { sequelizeModels } from "../Server/Models/createModels";
 import { Field, Form, Formik } from "formik";
-import { IArtist } from "Server/Models/Artist";
-import { api } from "../lib/api";
-export async function getServerSideProps() {
-  //const { Event, Artist } = initAssociations(sequelize);
-  const { Event, Artist } = models;
-  
+//import { sequelizeModels } from "Server/Models/createModels";
+import { IArtist } from "@/Server/Models/Artist";
+import Store from "@/Server/Store/Store";
+//import { api } from "../lib/api";
+import { AppState } from "@/Server/Store/ReduxStore";
+import { useDispatch, useSelector } from "react-redux";
+//import container from "../lib/container";
 
-  // запит на виведення списку подій, де статус "активний"
+
+/*
+export async function getServerSideProps() { 
+  // функція, що виконується тільки на сервері, при кожному request 
+
+  // створюється DI container, реєструються models, реєструються services
+  // реєструються controllers, створюються associations, export default container
+  // import container from "../Server/DI/container"; може бути небезпечним у Next.js.
+  // аналізує imports, будує dependency graph, може затягнути server-only modules у bundle analysis
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default;
+
+  // cradle не містить готові object-и напряму. cradle це interface доступу до dependencies
+  // Він: ліниво створює dependencies inject-ить dependencies кешує singleton-и
+
+  // container — це runtime object Awilix. 
+  // (реєструє залежності, створює залежності, кешує singleton-и, inject dependencies)
+
+  // IContextContainer - карта того, що є всередині container
+  const cradle: IContextContainer = container.cradle;
+
+  // Діагностика в консолі сервера (у браузері її тепер не буде)
+  console.log("=== КОНТЕЙНЕР УСПІШНО ІЗОЛЬОВАНО НА СЕРВЕРІ ===");
+  console.log(Object.keys(container.cradle));
+
+  //const { Event, Artist } = container.cradle as any;
+  const { Event, Artist } = cradle;
+
   const events = await Event.findAll({
     where: {status_event: "active"},
     order: [["id", "ASC"]],
@@ -35,13 +66,44 @@ export async function getServerSideProps() {
     },
   };
 }
+*/
 
-export default function ArtistsPage({ events }: any) {
+type ArtistResponse = {
+  artists: IArtist[]
+}
+/*
+export const getServerSideProps = Store.getServerSideProps(
+  "artistController",
+)*/
+
+export const getServerSideProps = Store.getServerSideProps(
+  [
+    {
+      controller: "artistController",
+      redux: "artists"
+    }
+  ]
+)
+
+export default function ArtistsPage({ data }) {
+  const dispatch = useDispatch();
+  const reduxData = useSelector((state: AppState) => state.entities.artists);
+  console.log("reduxData", reduxData);
+
   const[nameArtist, setNameArtist] = useState("");
-  const[artists, setArtists] = useState(events);
 
+  /*
+  console.log("data",data);
+  console.log("data.getArtistList",data.getArtistList);
+  console.log("data.getArtistList.artists",data.getArtistList.artists);
+  */
+  const[user] = useState(data.identity);
+
+  //const[artists, setArtists] = useState(data.getArtistList.artists);
+  const artists = reduxData?.data?.getArtistList.artists || [];
   const fetchAllData = async () => {
-    try{
+    //try{
+
       /*const res = await fetch(`/api/artists`)
       const data = await res.json();
       if(Array.isArray(data))
@@ -50,18 +112,27 @@ export default function ArtistsPage({ events }: any) {
         setNameArtist(""); 
       }*/
 
-      const data = await api.xRead<IArtist[]>("artists");
-      setArtists(data);
+      //const data = await api.xRead<IArtist[]>("artists");
+
+      /*
+      const data = await api.xRead<{getArtistList: ArtistResponse}>("artists");
+      setArtists(data.getArtistList.artists);
       setNameArtist("");
     }
     catch(error){
       console.log(error.message);
-    }
+    }*/
+
+    dispatch(
+      { type: "artists/FETCH_REQUEST", payload: {}}
+    )
+    
+    
   }
-  const fetchFilteredData = async (nameArtist) => {
-    try{
+  const fetchFilteredData = async (nameArtist: string) => {
+    // -> try{
       // створення query для запиту (URL) на основі того, що було введено користувачем
-      const query = nameArtist ? (new URLSearchParams({ stageName: nameArtist }).toString()) : "";
+      // -> const query = nameArtist ? (new URLSearchParams({ stageName: nameArtist }).toString()) : "";
       /*const url = query ? `/api/artists?${query}` : `/api/artists`;
 
       const res = await fetch(url);
@@ -71,13 +142,19 @@ export default function ArtistsPage({ events }: any) {
         setArtists(data); // з подальшим асигнуванням до змінної стану та її оновленням
         console.error("New Data - fetchFilteredData");
       }*/
-      const url = query ? `artists?${query}` : `artists`;
-      const data = await api.xRead<IArtist[]>(url);
-      setArtists(data);
+      
+      /*  const url = query ? `artists?${query}` : `artists`;
+      const data = await api.xRead<{getArtistList: ArtistResponse}>(url);
+      setArtists(data.getArtistList.artists);
     }
     catch(error){
       console.error("Filter error:", error);
-    }
+    }*/
+
+    const payload = nameArtist ? { stageName: nameArtist} : {};
+
+    dispatch({type: "artists/FETCH_REQUEST", payload})
+    
   }
   
     useEffect(() => {
@@ -86,9 +163,10 @@ export default function ArtistsPage({ events }: any) {
 
   
   return (
-    <Layout>
+    <Layout props = {user}>
       <div style = {{display: "flex", justifyContent: "center"}}>
         <h1>Events & Performers</h1>
+        <h2>{user.id}</h2>
         <p>{nameArtist}</p>
       </div>
       <div>
@@ -157,6 +235,13 @@ export default function ArtistsPage({ events }: any) {
                 }}
               >
                 Reset
+              </button>
+                            <button
+                onClick={() => {
+                  fetchAllData();
+                }}
+              >
+                TestReset
               </button>
             </>
           )}

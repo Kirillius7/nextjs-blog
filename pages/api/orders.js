@@ -1,4 +1,4 @@
-import { createRouter } from "next-connect";
+//->import { createRouter } from "next-connect";
 /*
 export default async function handler(req, res) {
   try {
@@ -10,9 +10,10 @@ export default async function handler(req, res) {
   }
 }*/
 
-import container from "../../lib/container";
+import container from 'Server/DI/container';
 
 //import orderController from "../../Server/Controllers/OrderController";
+/*->
 const router = createRouter({
   // Глобальний обробник помилок
   onError: (err, req, res) => {
@@ -31,6 +32,7 @@ const router = createRouter({
     });
   },
 });
+*/
 
 /*
 router.get(async(req, res) =>{
@@ -75,5 +77,11 @@ router.get(async(req, res) =>{
 */
 
 //router.get(orderController.getOrdersList);
+/*->
 router.get(container.cradle.orderController.getOrdersList);
 export default router.handler();
+*/
+
+export default container
+  .resolve("orderController")
+  .handler("/api/orders");

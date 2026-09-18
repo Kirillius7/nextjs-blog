@@ -1,87 +1,102 @@
 //import { Op } from "sequelize";
 //import { models } from "../../Server/Models/index";
+//import { GRANT } from "@/acl/types";
+//import { UserRole as ROLE } from "@/constants";
+import { GRANT } from "@/acl/types";
+import "reflect-metadata";
+import { USE } from "Server/decorators/USE";
+import { authGuardMiddlewares, sessionUserMiddlewares } from "../Auth/middleware";
+import { Query } from "../decorators/validateDecorator";
+//import GET from "Server/decorators/GET";
+//import { GET } from "../decorators/decorator";
+import { GET } from "@/Server/decorators/decorator";
+import { AccessDeniedError } from "../Exceptions";
+import type { ActionProps } from "./BaseController";
+import BaseController from "./BaseController";
 
-export class ArtistController{
-    private artistService;
+@USE(...sessionUserMiddlewares)
+export class ArtistController extends BaseController{
+    /*private artistService;
     public constructor({artistService}){
+        // extend BaseContext and remove constuctor
         this.artistService = artistService;
+        this.getArtistList= this.getArtistList.bind(this)
     }
-    public getArtistList = async(req, res) =>{
-        //const {Event, Artist} = req.models; // початок роботи з моделями use для дій з таблицями БД
+    */
+   constructor(opts){ 
+    // під час створення new ArtistController(opts) 
+    // awilix на основі зареєстрованих даних контейнера створює dependency object
+    // викликаючи обʼєкт контроллера з передачею параметрів opts (db, controllers, service, config)
+    
+    // express думає, що викликає метод getArtistList, але він вже замінений на wrapper function 
+    // (що приймає req,res, викликає оригінальний метод контролера, робить response)
+    super(opts);
+
+    //this.getArtistList= this.getArtistList.bind(this) 
+    // важливо для callback, адже у api передача просто function reference
+    // bind(this) -> вказується як поточний instance класу 
+    // (важливо для передачі методу як змінної або коли треба звернутись до змінних у методі, який не є =>)
+    
+   }
+
         /*
-            const { stageName } = req.query; // зчитування параметрів із запиту URL 
-            const {Event, Artist} = models;
-            let eventIdsWithFilteredArtist: number[] | null  = null;
-        
-            // 1. Пошук ID подій, де бере участь виконавець, на основі якого відбувається фільтрація
-            if (stageName) {
-                const eventsWithArtist = await Event.findAll({ // запит від sequelize до таблиці 
-                    attributes: ['id'], // робота лише з полем id
-                    include: [{ // join таблиці М:М (Event + Artist)
-                        model: Artist,
-                        as: "Performers", // alias (назва звʼязку)
-                        where: {
-                            stage_name: { [Op.like]: `%${stageName}%` } // пошук виконавців на основі певних даних 
-                            // до пошуку залучений оператор like -> який буде фільтрувати дані, на основі слова "всередині"
-                        },
-                        attributes: [], // ID подій, без додаткових даних 
-                        through: { attributes: [] } // приховування проміжної таблиці М:М 
-                    }],
-                    raw: true // повернення простого json-обʼєкта
-                });
-                
-                // Створення масиву ID: [1, 5, 12...]
-                eventIdsWithFilteredArtist = eventsWithArtist.map(e => e.id);
-            }
-        
-            // 2. Основний запит
-            const whereClause:any = { status_event: "active" }; // фільтр для пошуку лише активних подій
-        
-            // Пустий масив у разі відсутніх даних 
-            if (stageName && eventIdsWithFilteredArtist?.length === 0) {
-                //return res.status(200).json([]);
-                return res.status(200).json({
-                    success: true,
-                    data: []
-                })
-            }
-        
-            // Фільтр по знайдених ID
-            if (eventIdsWithFilteredArtist) {
-                whereClause.id = { [Op.in]: eventIdsWithFilteredArtist }; // додавання фільтру для подій з певним id (список in)
-            }
-        
-            const events = await Event.findAll({ // запит до таблиці 
-                where: whereClause, // фільтри (номера id + активний статус)
-                order: [["id", "ASC"]],
-                include: [ // підключення таблиці Artist через alias 
-                    {
-                        model: Artist,
-                        as: "Performers",
-                        attributes: ["id", "stage_name"], // вибірка полів
-                        through: { attributes: [] }, // приховування проміжної таблиці М:М 
-                        required: false // Параметр false, щоб завантажити всіх інших артистів, з якими бере участь "відфільтрований"
-                    },
-                ],
+        return this.di.ArtistService.getArtistList(req.query)
+            .then(events => {
+                return this.ok(res, events);
+            }).catch(er => {
+                return this.fail(res, er.message)
             });
-        
-            //return res.status(200).json(events);
-            return res.status(200).json({
-                success: true,
-                data: events
-            })
         */
 
-        const events = await this.artistService.getArtistList(req.query);
-        return res.status(200).json({
-                success: true,
-                data: events
-        })
+    // контролер більше не знає про req,res, express (http-layer)
+    // він відповідає тільки за координацію: взяв дані -> передав у сервіс -> повернув результат
 
+    // запис метаданих Reflect.defineMetadata ({get: ["getArtistList"]}, ArtistController.prototype)
+    // -> в памʼяті є ArtistController.prototype і метадані - це зроблено у якості побудови довідника
+    @GET("/api/artists")
+    @GET("/artists")
+    /*
+    @GET("/artists", {
+            allow: {
+                [ROLE.ADMIN]: [GRANT.READ],
+            }
+        }
+    )*/
+    @Query({ // незалежний окремий виклик для формування validate + closure
+      type: "object",
+      properties: {
+        stageName:{
+          type: "string"
+        },
+      },
+      additionalProperties: false
+    })
+    @USE(...authGuardMiddlewares) 
+    public async getArtistList(reqData: ActionProps){
+        //const test: ActionProps = reqData;
+
+        //const testQuery = reqData.query;
+
+        console.log("artistcontroller.ts");
+        console.log("artistcontroller.ts")
+        const {query, guard} = reqData;
+
+        console.log("ROLE:", guard.role);
+        console.log("RESOURCE:", guard.resource);
+
+        console.log(
+            "READ ALLOWED:",
+            guard.allow(GRANT.READ)
+        );
+
+        if(!guard.allow(GRANT.READ)){
+            throw new AccessDeniedError();
+        }
+        //return this.di.ArtistService.getArtistList(query)
+        const artists = await this.di.ArtistService.getArtistList(query)
+        return{
+            artists
+        }
     }
+        
 }
-
-
-//const artistController = new ArtistController()
-
-// export default artistController;

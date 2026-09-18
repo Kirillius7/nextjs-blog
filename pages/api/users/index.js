@@ -1,5 +1,7 @@
 // import User from "../../models/User.js";
-import { createRouter } from 'next-connect';
+
+//->import { createRouter } from 'next-connect';
+
 //import userController from "../../Server/Controllers/UserController";
 /*export default async function handler(req, res) {
   try {
@@ -11,7 +13,8 @@ import { createRouter } from 'next-connect';
   }
 }*/
 
-import container from '../../lib/container';
+import container from 'Server/DI/container';
+/* ->
 const router = createRouter({
   // Глобальний обробник помилок
   onError: (err, req, res) => {
@@ -30,7 +33,7 @@ const router = createRouter({
     });
   },
 });
-
+*/
 
 {/*
 router.get(async(req, res) => {
@@ -75,5 +78,13 @@ router.get(async(req, res) => {
 })*/}
 
 //router.get(userController.getUsersList);
+
+/*->
 router.get(container.cradle.userController.getUserList)
 export default router.handler();
+*/
+
+export default container
+    .resolve("userController")
+    //.handler("/api/users")
+    .handler()

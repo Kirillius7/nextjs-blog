@@ -21,9 +21,8 @@ import { UserService } from "Server/Services/UserService";
 
 const container = createContainer({
     injectionMode: InjectionMode.PROXY,
-    strict: true
+    strict: true // перевірка назви dependency, якщо dependency не зареєстрована, захист від "мовчазної" роботи при помилці
 });
-
 container.register({
     eventSeriesController: asClass(EventSeriesController).singleton(),
     eventSeriesService: asClass(EventSeriesService).singleton(),

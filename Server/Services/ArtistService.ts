@@ -156,21 +156,42 @@ export class EventSeriesService { // виконання бізнес логік�
 */
 /*<------------------------------------------------------------------------------------------------------------------------------>*/
 
-import { models } from "Server/Models";
+//import { models } from "Server/Models";
 import { Op } from "sequelize";
-
+//import type IContextContainer from "Server/DI/Interfaces/IContextContainer";
+//import { sequelizeModels } from "Server/Models/createModels";
+import type { ArtistType } from "Server/Models/Artist";
+import type { EventType } from "Server/Models/Event";
+//import { ValidateError } from "../Exceptions";
 export class ArtistService{
+   private Event: any;
+   private Artist: any;
+   // DI container видає Event і Artist
+   constructor( {Event, Artist}: {Event: EventType, Artist: ArtistType}) {
+      this.Event = Event;
+      this.Artist = Artist;
+   }
+
    public getArtistList = async(filters) => {
-      const { stageName } = filters; // зчитування параметрів із запиту URL 
-            const {Event, Artist} = models;
+      const { stageName } = filters || {}; // зчитування параметрів із запиту URL
+            /*
+            const allowedQueryParams = ["stageName"];
+            for (const key of Object.keys(filters)) {
+               if (!allowedQueryParams.includes(key)) {
+                  throw new ValidateError();
+               }
+            }*/
+
+            //const { Event, Artist } = this.ctx;
+            console.log("Event associations:", Object.keys(this.Event.associations || {}));
             let eventIdsWithFilteredArtist: number[] | null  = null;
-        
+            console.log("Перевірка зв'язків у сервісі:", this.Event.associations);
             // 1. Пошук ID подій, де бере участь виконавець, на основі якого відбувається фільтрація
             if (stageName) {
-                const eventsWithArtist = await Event.findAll({ // запит від sequelize до таблиці 
+                const eventsWithArtist = await this.Event.findAll({ // запит від sequelize до таблиці 
                     attributes: ['id'], // робота лише з полем id
                     include: [{ // join таблиці М:М (Event + Artist)
-                        model: Artist,
+                        model: this.Artist,
                         as: "Performers", // alias (назва звʼязку)
                         where: {
                             stage_name: { [Op.like]: `%${stageName}%` } // пошук виконавців на основі певних даних 
@@ -191,14 +212,6 @@ export class ArtistService{
         
             // Пустий масив у разі відсутніх даних 
             if (stageName && eventIdsWithFilteredArtist?.length === 0) {
-                //return res.status(200).json([]);
-
-                /*
-                return res.status(200).json({
-                    success: true,
-                    data: []
-                })
-               */
               return [];
             }
         
@@ -207,12 +220,12 @@ export class ArtistService{
                 whereClause.id = { [Op.in]: eventIdsWithFilteredArtist }; // додавання фільтру для подій з певним id (список in)
             }
         
-            const events = await Event.findAll({ // запит до таблиці 
+            const events = await this.Event.findAll({ // запит до таблиці 
                 where: whereClause, // фільтри (номера id + активний статус)
                 order: [["id", "ASC"]],
                 include: [ // підключення таблиці Artist через alias 
                     {
-                        model: Artist,
+                        model: this.Artist,
                         as: "Performers",
                         attributes: ["id", "stage_name"], // вибірка полів
                         through: { attributes: [] }, // приховування проміжної таблиці М:М 
@@ -221,15 +234,7 @@ export class ArtistService{
                 ],
             });
         
-            //return res.status(200).json(events);
-
-            /*
-            return res.status(200).json({
-                success: true,
-                data: events
-            })
-            */
-           return events;
+           return events.map(event => event.toJSON());
 
    }
 }

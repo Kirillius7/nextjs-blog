@@ -1,14 +1,26 @@
 import Layout from "../../components/layout";
 //import sequelize from "../lib/sequelize";
-import { IUser } from "Server/Models/User";
 import { Field, Form, Formik } from "formik";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useState } from "react";
-import { models } from "../../Server/Models/index";
+//import { models } from "../../Server/Models/index";
+//import { sequelizeModels } from "../../Server/Models/createModels";
+//import IContextContainer from 'Server/DI/Interfaces/IContextContainer';
+
+import { IUser } from "@/Server/Models/User";
+import Store from "@/Server/Store/Store";
 import { api } from "../../lib/api";
+/*
 export async function getServerSideProps(context) {
-  const {User, Order, Ticket, Event} = models;
+  
+  // Тепер імпортуємо контейнер (теж динамічно або звичайним імпортом зверху, 
+  // але динамічно всередині функції надійніше, щоб уникнути каші в бандлі)
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default;
+  const cradle: IContextContainer = container.cradle;
+  
+  const {User, Order, Ticket, Event} = cradle;
+
   const {userid} = context.query;
   const users = await User.findAll({
     where: {role: "client", ...(userid && {id: userid})},
@@ -37,27 +49,39 @@ export async function getServerSideProps(context) {
     }
   };
 }
+*/
+export const getServerSideProps = Store.getServerSideProps(
+  "userController"
+)
 
-export default function UsersPage({ users }) {
-  const[usrs, setUsers] = useState(users);
+type UserResponse = {
+  users: IUser[],
+  userid: number | null
+}
+
+export default function UsersPage({ data }) {
+  const[user] = useState(data.identity);
+  const[usrs, setUsers] = useState(data.getUserList.users);
+  /*
   const router = useRouter();
   
   const userid =
     typeof router.query.userid === "string"
     ? router.query.userid
     : undefined;
-
+  */
+  const userid = data.getUserList.userid;
   const fetchAllData = async(userid?: string) => {
     const params = new URLSearchParams();
-    if (userid && userid.trim()) {
+    if (userid !== undefined && userid !== null) {
         params.append("userid", userid);
     }
 
     const query = params.toString();
     const url = userid ? `users?${query}` : "users";
 
-    const data = await api.xRead<IUser[]>(url);
-    setUsers(data);
+    const data = await api.xRead<{getUserList: UserResponse}>(url);
+    setUsers(data.getUserList.users);
   }
 
   const fetchFilteredData = async(eventName: string, categoryTicket: string, userid?: string) => {
@@ -81,7 +105,7 @@ export default function UsersPage({ users }) {
         params.append("categoryTicket", categoryTicket);
       }
       
-      if (userid && userid.trim()) {
+      if (userid !== undefined && userid !== null) {
         params.append("userid", userid);
       }
 
@@ -93,9 +117,9 @@ export default function UsersPage({ users }) {
 
       console.log(url);
 
-      const data = await api.xRead(url);
+      const data = await api.xRead<{getUserList: UserResponse}>(url);
 
-      setUsers(data);
+      setUsers(data.getUserList.users);
   }
 
   const ticketOptions = [
@@ -105,7 +129,7 @@ export default function UsersPage({ users }) {
   ];
 
   return (
-    <Layout>
+    <Layout props = {user}>
       <h1>Our clients</h1>
       <div>
       <Formik

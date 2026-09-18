@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 //import { Event_ArtistType } from "../Interfaces/event_artist.interface";
 import { BuildOptions, Model } from "sequelize";
-import sequelize from "../../lib/sequelize";
+//import sequelize from "../../lib/sequelize";
 
 
 export interface IEvent_Artist extends Model{
@@ -44,7 +44,11 @@ export const Event_ArtistModel = (ctx: any) => { // створення функ�
 }
 */
 
-export const EventArtist = <Event_ArtistType>sequelize.define("event_artists", {
+import IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+//export const EventArtist = <Event_ArtistType>sequelize.define("event_artists", {
+const EventArtist = <Event_ArtistType>ctx.db.define("event_artists", {
         eventid:{
             field: "event_id",
             allowNull: false,
@@ -66,4 +70,6 @@ export const EventArtist = <Event_ArtistType>sequelize.define("event_artists", {
         }
     },{
     timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
-  });
+  })
+  return EventArtist;
+}

@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 //import { UserType } from "../Interfaces/user.interface";
-import sequelize from "@lib/sequelize";
+//import sequelize from "@lib/sequelize";
 import { BuildOptions, Model } from "sequelize";
 
 export interface IUser extends Model {
@@ -82,8 +82,11 @@ export const UserModel = (ctx: any) => { // UserModel (w/o init)
   return User;
 };*/
 
+import IContextContainer from "../DI/Interfaces/IContextContainer";
 
-export const User = <UserType>sequelize.define("users", {
+export default (ctx: IContextContainer) => {
+//const User = <UserType>sequelize.define("users", {
+const User = <UserType>ctx.db.define("users", {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -142,3 +145,5 @@ export const User = <UserType>sequelize.define("users", {
   }, {
     timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
 });
+  return User;
+}

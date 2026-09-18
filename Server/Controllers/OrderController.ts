@@ -1,54 +1,69 @@
 //import { models } from "../../Server/Models/index";
+import "reflect-metadata";
+//import GET from "Server/decorators/GET";
+import { GET } from "@/Server/decorators/decorator";
+import { authGuardMiddlewares, sessionUserMiddlewares } from "../Auth/middleware";
 
-export class OrderController{
-    private orderService;
+import { USE } from "../decorators/USE";
+import { Params, Query } from "../decorators/validateDecorator";
+import type { ActionProps } from "./BaseController";
+import BaseController from "./BaseController";
+
+@USE(...sessionUserMiddlewares)
+export class OrderController extends BaseController{
+    /*private orderService;
     public constructor({orderService}){
       this.orderService = orderService;
+    }*/
+    constructor(opts){
+      super(opts);
+
+      //this.getOrdersList = this.getOrdersList.bind(this)
     }
-    public getOrdersList = async(req, res) => {
-          /*
-          const { eventName, categoryTicket,orderid } = req.query;
-        
-          const {Order, User, Event, Ticket} = models;
-          
-          const eventsWhere: any = {};
-          const ticketWhere: any = {};
-        
-          if(eventName) eventsWhere.eventName = eventName;
-          if(categoryTicket) ticketWhere.category = categoryTicket;
-        
-          console.log("Object.keys(eventsWhere).length", Object.keys(eventsWhere).length)
-          console.log("Object.keys(ticketWhere).length", Object.keys(ticketWhere).length)
-        
-          const orders = await Order.findAll({
-            where: {statusorder: "paid", ...(orderid && {id: orderid})},
-            include: [{
-              model: Ticket,
-              as: "tickets",
-              required: true,
-              where: Object.keys(ticketWhere).length ? ticketWhere : undefined,
-              
-        
-              include: [{
-                model: Event,
-                as: "eventTicket",
-                attributes: ["eventName"],
-                required: true,
-                where: Object.keys(eventsWhere).length ? eventsWhere : undefined,
-                
-              }]
-            }]
+
+        /*
+          return this.di.OrderService.getOrdersList(req.query).catch(orders => {
+            return this.ok(res, orders)
+          }).catch(er => {
+            return this.fail(res, er.message);
           })
-          */
-          
-          const orders = await this.orderService.getOrdersList(req.query);
-          return res.status(200).json({
-            success: true,
-            data: orders
-          });
+    }*/
+    @GET("/api/orders")
+    @GET("/orders/:orderid") 
+    @GET("/orders")
+    @Query({ // незалежний окремий виклик для формування validate + closure
+      type: "object",
+      properties: {
+        categoryTicket: {
+          type: "string",
+          enum: ["vip", "special", "ordinary"]
+        },
+        eventName:{
+          type: "string"
+        },
+      },
+      additionalProperties: false
+    }) 
+    @Params({ // незалежний окремий виклик для формування validate + closure
+      type: "object",
+      properties: {
+        userid: {
+          type: "string",
+          pattern: "^[1-9]\\d*$"
+        }
+      },
+      //required: ["userid"],
+      additionalProperties: false
+    })
+    @USE(...authGuardMiddlewares)
+    public async getOrdersList(reqData: ActionProps){
+      const {query} = reqData;
+      //return this.di.OrderService.getOrdersList(query)
+      const orders = await this.di.OrderService.getOrdersList(query);
+      const orderid = reqData.query.orderid ? Number(reqData.query.orderid) : null;
+      return {
+        orders,
+        orderid
+      }
     }
 }
-
-//const orderController = new OrderController();
-
-//export default orderController;

@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 //import { EventType } from "../Interfaces/event.interface";
 import { BuildOptions, Model } from "sequelize";
-import sequelize from "../../lib/sequelize";
+//import sequelize from "../../lib/sequelize";
 export interface IEvent extends Model{
     readonly id: number;
     user_id: number;
@@ -131,7 +131,11 @@ export const EventModel = (ctx: any) => {
     //return Event;
 //}
 
-export const Event = <EventType>sequelize.define("events", {
+import IContextContainer from "../DI/Interfaces/IContextContainer";
+
+export default (ctx: IContextContainer) => {
+//export const Event = <EventType>sequelize.define("events", {
+const Event = <EventType>ctx.db.define("events", {
         id: {
             allowNull: false,
             autoIncrement: true,
@@ -225,4 +229,7 @@ export const Event = <EventType>sequelize.define("events", {
         },
     },{
         timestamps: false // Вимикаємо, бо в SQL схемі немає updated_at
-});
+}
+)
+    return Event;
+}

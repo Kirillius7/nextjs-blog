@@ -1,14 +1,23 @@
-import { IOrder } from "Server/Models/Order";
 import Layout from "components/layout";
 import { Field, Form, Formik } from "formik";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useState } from "react";
-import { models } from "../../Server/Models/index";
+
+import { IOrder } from "@/Server/Models/Order";
+import Store from "@/Server/Store/Store";
 import { api } from "../../lib/api";
+/*
 export async function getServerSideProps(context) {
     const {orderid} = context.query;
-    const {Order, User, Event, Ticket} = models;
+      await import("Server/Models/createModels"); 
+  
+  // Тепер імпортуємо контейнер (теж динамічно або звичайним імпортом зверху, 
+  // але динамічно всередині функції надійніше, щоб уникнути каші в бандлі)
+  const containerModule = await import("Server/DI/container");
+  const container = containerModule.default;
+  const cradle: IContextContainer = container.cradle;
+  
+    const {Order, Event, Ticket} = cradle;
 
     const orders = await Order.findAll({
         where: {id: orderid},
@@ -30,30 +39,41 @@ export async function getServerSideProps(context) {
         }
     }
 }
+*/
 
+export const getServerSideProps = Store.getServerSideProps(
+    "orderController"
+)
   const ticketOptions = [
     "vip",
     "special",
     "ordinary"
   ];
-
-export default function OrdersPage({orders}){
+type OrderResponse = {
+  orders: IOrder[],
+  orderid: number | null
+}
+export default function OrdersPage({data}){
+      /*
       const router = useRouter();
       
       const orderid =
         typeof router.query.orderid === "string"
         ? router.query.orderid
         : undefined;
+      */
+    const[user] = useState(data.identity);
+    const[ordrs, setOrders] = useState(data.getOrdersList.orders);
 
-    const[ordrs, setOrders] = useState(orders);
+    const orderid = data.getOrdersList.orderid;
 
     const fetchAllData = async(orderid?: string) =>{
         console.log(orderid);
         const url = orderid ? `orders?orderid=${orderid}` : "orders";
         console.log(url);
-        const data = await api.xRead<IOrder[]>(url);
+        const data = await api.xRead<{getOrdersList: OrderResponse}>(url);
 
-        setOrders(data);
+        setOrders(data.getOrdersList.orders);
     }
 
     const fetchFilteredData = async(eventName: string, categoryTicket: string, orderid?: string) =>{
@@ -65,20 +85,20 @@ export default function OrdersPage({orders}){
         if(categoryTicket.trim())
             params.append("categoryTicket", categoryTicket)
 
-        if(orderid && orderid.trim())
+        if(orderid !== undefined && orderid !== null)
             params.append("orderid", orderid)
 
         const query = params.toString();
 
         const url = query ? `orders?${query}` : "orders";
         console.log(url);
-        const data = await api.xRead<IOrder[]>(url);
+        const data = await api.xRead<{getOrdersList: OrderResponse}>(url);
 
-        setOrders(data);
+        setOrders(data.getOrdersList.orders);
     }
 
     return(
-        <Layout>
+        <Layout props = {user}>
             <Formik
               initialValues={{ nameEvent: "", categoryTicket: "" }}
               validate={(values) => {
@@ -153,6 +173,7 @@ export default function OrdersPage({orders}){
                         </div>
                         {/*<p>publishedAt: {new Date(order.publishedAt * 1000).toLocaleDateString()}</p>*/}
                         {order.tickets.map((tckt) => (
+                          <div key = {tckt.id}>
                             <div style = {{backgroundColor: "white",
                 border: "1px solid #e5e5e5",
                 borderRadius: "10px",
@@ -165,7 +186,7 @@ export default function OrdersPage({orders}){
                             <p>NameEvent: {tckt.eventTicket.eventName}</p>
                             
                             </div>
-                        ))}
+                        </div>))}
                         <Link href = {`/users/${order.userid}`}>
                                 <button>Go to user</button>
                         </Link>
